@@ -1,0 +1,335 @@
+{
+  "name": "Job Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Job Match Analyzer",
+        "formDescription": "Paste a job vacancy below to analyze how well it matches your profile.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Job vacancy",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "buttonLabel": "Analyze Vacancy",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "=Analysis completed successfully. The result has been saved to Google Sheets."
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -80,
+        32
+      ],
+      "name": "Job Vacancy Form"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "03677863-2ac2-4bc2-a4d8-7f0fbdce4ef9",
+              "name": "job_text",
+              "value": "={{ $json['Job vacancy text'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "name": "Prepare Vacancy Text"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.job_text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a job vacancy analyzer.\n\nCandidate profile:\n- Bachelor's degree in Information Technology\n- German: B2 certified\n- English: B2-C1\n- Completed an IT Support professional certificate\n- Skills: Windows, Google Workspace, VPN, remote support tools, basic PowerShell, basic networking and troubleshooting\n- Basic experience with AI automation, n8n, APIs, webhooks, JSON and Google Sheets\n- Previous team leadership experience\n- Strong communication skills and fast learner\n\nCareer target:\n- IT Support\n- 1st Level Support\n- Junior IT positions\n- IT Helpdesk / Service Desk\n- Other realistic entry-level IT positions\n\nAnalyze the provided job vacancy specifically for this candidate.\n\nReturn:\n- company\n- position\n- location\n- score: integer from 0 to 100\n- decision: APPLY, MAYBE, or SKIP\n- reasons: short explanation of why the job fits or does not fit\n- missing_skills: important missing requirements only\n- next_step: recommended action\n\nScoring rules:\n- 80-100 = strong match\n- 60-79 = worth applying\n- 40-59 = maybe\n- 0-39 = skip\n\nBe realistic, but do not reject the candidate only because the vacancy asks for a completed formal qualification or some experience if the overall profile is still suitable.\n\nReturn only valid JSON. No markdown and no additional text."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "name": "Analyze Job Match"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        208
+      ],
+      "name": "    GPT Model"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"company\": \"Example Company\",\n  \"position\": \"IT Support\",\n  \"location\": \"Stuttgart\",\n  \"score\": 75,\n  \"decision\": \"APPLY\",\n  \"reasons\": \"Good match for the candidate profile\",\n  \"missing_skills\": \"Advanced networking\",\n  \"next_step\": \"Apply with tailored CV\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        208
+      ],
+      "name": "    Parse Analysis Result"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd') }}",
+            "company": "={{ $json.output.company }}",
+            "position": "={{ $json.output.position }}",
+            "location": "={{ $json.output.location }}",
+            "score": "={{ $json.output.score }}",
+            "desision": "={{ $json.output.decision }}",
+            "reasons": "={{ $json.output.reasons }}",
+            "missing skills": "={{ $json.output.missing_skills }}",
+            "next step": "={{ $json.output.next_step }}",
+            "job text": "={{ $('Prepare Vacancy Text').item.json.job_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "position",
+              "displayName": "position",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "desision",
+              "displayName": "desision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reasons",
+              "displayName": "reasons",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "missing skills",
+              "displayName": "missing skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next step",
+              "displayName": "next step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job text",
+              "displayName": "job text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        0
+      ],
+      "name": "Save Result to Google Sheets"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c3ba9553-2570-4aab-ad46-325d5bc851b6",
+              "name": "response",
+              "value": "=🎯 MATCH SCORE: {{ $json.score }}/100\n\n📋 DECISION: {{ $json.desision }}\n\n💡 WHY:\n{{ $json.reasons }}\n\n⚠️ MISSING SKILLS:\n{{ $json[\"missing skills\"] }}\n\n🚀 NEXT STEP:\n{{ $json[\"next step\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        0
+      ],
+      "name": "Format Final Response"
+    }
+  ],
+  "connections": {
+    "Job Vacancy Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare Vacancy Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Vacancy Text": {
+      "main": [
+        [
+          {
+            "node": "Analyze Job Match",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Job Match": {
+      "main": [
+        [
+          {
+            "node": "Save Result to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "    GPT Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Job Match",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "    Parse Analysis Result": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Analyze Job Match",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Result to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Format Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "nodeGroups": []
+}
