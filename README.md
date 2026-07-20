@@ -7,6 +7,9 @@ An AI-powered n8n workflow that analyzes job vacancies, evaluates candidate fit,
 This workflow helps job seekers quickly evaluate whether a vacancy matches their profile. The user pastes a job description into a simple form, and the workflow uses AI to analyze the vacancy and return a structured recommendation.
 
 ## How It Works
+### Workflow
+
+![Workflow](workflow%20screenshot.png)
 
 1. The user submits a job vacancy through an n8n form.
 2. The vacancy text is prepared for AI analysis.
@@ -51,6 +54,10 @@ This project demonstrates how AI automation can reduce the time spent manually r
 4. Select a spreadsheet for storing the results.
 5. Customize the candidate profile in the AI Agent prompt.
 6. Publish the workflow and submit a vacancy through the form.
+
+## Example Output
+
+![Google Sheets Output](tabelle%20screenshot.png)
 
 ## Privacy
 
