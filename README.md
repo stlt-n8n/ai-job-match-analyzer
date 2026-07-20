@@ -1,5 +1,7 @@
 # AI Job Match Analyzer
 
+![AI Job Match Analyzer](Thumbnail-aijobanalyzer.png)
+
 An AI-powered n8n workflow that analyzes job vacancies, evaluates candidate fit, and saves structured results to Google Sheets.
 
 ## Overview
